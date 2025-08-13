@@ -40,9 +40,17 @@ This project combines hardware sensors, live data logging, a Flask-based web das
 
 ## 📁 Folder Structure
 
-DHT_project/ ├── app.py                         # Flask dashboard ├── sensor_logger.py              # Logger script (DHT11 + soil moisture) ├── irrigation_duration_model.pkl # Trained ML model (DecisionTreeClassifier) ├── sensor_data.csv               # Live sensor log ├── templates/ │   └── dashboard.html            # Web UI template (Bootstrap + Chart.js)
+## 📁 Folder Structure
 
-
+```plaintext
+DHT_project/
+├── app.py                        # Flask dashboard
+├── sensor_logger.py              # Logger script (DHT11 + soil moisture)
+├── irrigation_duration_model.pkl # Trained ML model (DecisionTreeClassifier)
+├── sensor_data.csv               # Live sensor log
+├── templates/
+    └── dashboard.html            # Web UI template (Bootstrap + Chart.js)
+```
 ---
 
 ## 🚀 How to Run
@@ -51,18 +59,18 @@ DHT_project/ ├── app.py                         # Flask dashboard ├─�
    ```bash
    source dht_env/bin/activate
 
-2. **Launch the Dashboard**:
+2. **Launch the Sensor Logger**:
+   ```bash
+   python sensor_logger.py
+   
+3. **Launch the Dashboard**:
    ```bash
    python app.py
-   
-3. **View in Browser**: Open your browser and navigate to:
+
+4. ****View in Browser**: Open your browser and navigate to**:
    ```bash
    http://<raspberry-pi-ip>:5000
-Replace <raspberry-pi-ip> with your Raspberry Pi’s actual IP address.
-
-4. **Activate virtual environment**:
-   ```bash
-   source dht_env/bin/activate
+- Replace <raspberry-pi-ip> with your Raspberry Pi’s actual IP address.
 
 ## 🤖 Machine Learning Integration
 
