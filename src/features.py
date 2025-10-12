@@ -1,42 +1,39 @@
+# src/features.py
 import numpy as np
 import pandas as pd
+from src.config import SOIL_FRAC_COLS, STATE_COL, DIST_COL, DATE_COL, MOIST_COL
 
 def add_time_features(df):
-    df['month'] = df['Date'].dt.month
-    df['day'] = df['Date'].dt.day
-    df['year'] = df['Date'].dt.year
-    df['dayofyear'] = df['Date'].dt.dayofyear
-    # cyclical months
+    df[DATE_COL] = pd.to_datetime(df[DATE_COL])
+    df['month'] = df[DATE_COL].dt.month
+    df['day'] = df[DATE_COL].dt.day
+    df['dayofyear'] = df[DATE_COL].dt.dayofyear
     df['month_sin'] = np.sin(2*np.pi*df['month']/12)
     df['month_cos'] = np.cos(2*np.pi*df['month']/12)
+    
     return df
 
-def soil_dominant_and_features(df):
-    # You already have four fractional columns per row: clayey,floamy,sandy,clayskeletal
-    soil_cols = ['clayey','floamy','sandy','clayskeletal']
-    # If they are proportions, keep them. Add a 'dominant' column via argmax
-    df['dominant_soil'] = df[soil_cols].idxmax(axis=1)
-    # Optionally create a numeric 'drainage_score' as weighted sum (higher value => faster drainage)
-    weights = {'sandy':1.2, 'floamy':1.0, 'clayey':0.7, 'clayskeletal':1.0}
-    df['drainage_score'] = (
-        df['sandy']*weights['sandy'] +
-        df['floamy']*weights['floamy'] +
-        df['clayey']*weights['clayey'] +
-        df['clayskeletal']*weights['clayskeletal']
-    )
+def soil_features(df):
+    # dominant soil (string)
+    df['dominant_soil'] = df[SOIL_FRAC_COLS].idxmax(axis=1)
+    # drainage score — example weighted sum
+    weights = {'sandy':1.2, 'floamy':1.0, 'clayey':0.8, 'clayskeletal':0.7}
+    df['drainage_score'] = sum(df[col] * weights[col] for col in SOIL_FRAC_COLS)
     return df
 
-def create_lag_features(df):
-    group_cols = ['State Name', 'DistrictName']
-    target_col = 'Aggregate Soilmoisture Percentage (at 15cm)'
-    df = df.sort_values(group_cols + ['Date'])
-    for l in [1,2,3,7]:
-        df[f'{target_col}_lag_{l}'] = df.groupby(group_cols)[target_col].shift(l)
-    df[f'{target_col}_roll7'] = (
-        df.groupby(group_cols)[target_col]
-        .rolling(window=7, min_periods=1)
-        .mean()
-        .reset_index(level=[0,1], drop=True)  # <-- fix: drop both group levels
+def create_lag_roll(df):
+    from src.config import MOIST_COL, STATE_COL, DIST_COL
+
+    # 🧹 Ensure moisture column is numeric
+    df[MOIST_COL] = pd.to_numeric(df[MOIST_COL], errors='coerce')
+    df[MOIST_COL].fillna(df[MOIST_COL].median(), inplace=True)
+
+    # ✅ Then proceed with rolling calculations
+    df[f'{MOIST_COL}_lag1'] = df.groupby([STATE_COL, DIST_COL])[MOIST_COL].shift(1)
+    df[f'{MOIST_COL}_roll7'] = (
+        df.groupby([STATE_COL, DIST_COL])[MOIST_COL]
+          .rolling(7, min_periods=1)
+          .mean()
+          .reset_index(0, drop=True)
     )
-    # after making lags you will have NaNs for first rows per group; keep or drop depending on approach
     return df
