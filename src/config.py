@@ -1,6 +1,6 @@
 # src/config.py
 RAW_CSV = "data/raw/Combined_Dataset_final.csv"
-PROCESSED_CSV = "data/processed/prcesses_dataset.csv"
+PROCESSED_CSV = "data/processed/processed_dataset_Created.csv"
 DATE_COL = "Date"
 STATE_COL = "State Name"
 DIST_COL = "DistrictName"

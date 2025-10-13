@@ -22,18 +22,21 @@ def soil_features(df):
     return df
 
 def create_lag_roll(df):
-    from src.config import MOIST_COL, STATE_COL, DIST_COL
+    group_cols = ['State Name', 'DistrictName']
+    MOIST_COL = 'Aggregate Soilmoisture Percentage (at 15cm)'
 
-    # 🧹 Ensure moisture column is numeric
+    # Ensure the column is numeric
     df[MOIST_COL] = pd.to_numeric(df[MOIST_COL], errors='coerce')
-    df[MOIST_COL].fillna(df[MOIST_COL].median(), inplace=True)
 
-    # ✅ Then proceed with rolling calculations
-    df[f'{MOIST_COL}_lag1'] = df.groupby([STATE_COL, DIST_COL])[MOIST_COL].shift(1)
+    # Create lag features with correct names
+    for lag in [1, 3, 7]:
+        df[f'{MOIST_COL}_lag_{lag}'] = df.groupby(group_cols)[MOIST_COL].shift(lag)
+
+    # Rolling mean
     df[f'{MOIST_COL}_roll7'] = (
-        df.groupby([STATE_COL, DIST_COL])[MOIST_COL]
-          .rolling(7, min_periods=1)
-          .mean()
-          .reset_index(0, drop=True)
+        df.groupby(group_cols)[MOIST_COL]
+        .rolling(window=7, min_periods=1)
+        .mean()
+        .reset_index(level=[0,1], drop=True)
     )
     return df

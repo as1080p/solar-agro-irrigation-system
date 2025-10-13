@@ -1,5 +1,6 @@
 # src/targets.py
-from .config import HORIZON, MOIST_COL, DURATION_TO_CLASS
+import pandas as pd
+from src.config import HORIZON, MOIST_COL, DURATION_TO_CLASS
 
 def add_forecast_targets(df):
     for h in range(1, HORIZON+1):

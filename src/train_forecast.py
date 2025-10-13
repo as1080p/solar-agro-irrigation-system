@@ -1,11 +1,12 @@
 # src/train_forecast.py
 import joblib
+import pandas as pd
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.svm import SVR
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
-import pandas as pd
-from src.config import PROCESSED_CSV
+from src.config import PROCESSED_CSV, STATE_COL  # assuming STATE_COL = 'State'
+
 FEATURES = [
     'Aggregate Soilmoisture Percentage (at 15cm)',
     'Aggregate Soilmoisture Percentage (at 15cm)_lag_1',
@@ -17,15 +18,28 @@ FEATURES = [
 ]
 
 def train():
+    print(f"Reading from: {PROCESSED_CSV}")
     df = pd.read_csv(PROCESSED_CSV)
-    # drop NA rows created by lags or targets
+
+    # Filter for Maharashtra only and take first 200 rows
+    df = df[df[STATE_COL].str.lower() == 'maharashtra'].head(10170)
+    print(f"Filtered dataset size: {len(df)} rows")
+
+    # Drop NA rows (due to lags)
     df = df.dropna(subset=FEATURES + [f'moisture_tplus{i}' for i in range(1,8)])
+
     X = df[FEATURES]
     y = df[[f'moisture_tplus{i}' for i in range(1,8)]]
-    pipe = Pipeline([('scaler', StandardScaler()), ('svr', MultiOutputRegressor(SVR(kernel='rbf')))])
+
+    print("Training model on Maharashtra data only...")
+    pipe = Pipeline([
+        ('scaler', StandardScaler()),
+        ('svr', MultiOutputRegressor(SVR(kernel='rbf')))
+    ])
     pipe.fit(X, y)
-    joblib.dump(pipe, 'models/moisture_forecast.pkl')
-    print("Saved models/moisture_forecast.pkl")
+
+    joblib.dump(pipe, 'models/moisture_forecast_maharashtra.pkl')
+    print("✅ Saved model: models/moisture_forecast_maharashtra.pkl")
 
 if __name__ == "__main__":
     train()
