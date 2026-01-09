@@ -1,0 +1,10 @@
+pandas
+numpy
+scikit-learn
+matplotlib
+seaborn
+joblib
+xgboost
+tensorflow        # for Keras models (or tensorflow-cpu if small)
+python-dateutil
+jupyterlab        # optional
